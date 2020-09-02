@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css">
+</head>
+<body>
+    <div class="container my-3">
+        <div id=app>
+            <div class="row">
+                <div class="col-lg-4">
+                    <h3>Cursos</h3>
+                    <div class="list-group list-group-flush">
+                        <button 
+                            v-for="curso in cursos" 
+                            :key="curso.id" 
+                            type="button" 
+                            class="list-group-item list-group-item-action"
+                            :class="{
+                                'active': cursoSeleccionado && cursoSeleccionado.id == curso.id
+                            }"
+                            @click="onClickCurso(curso)"
+                        >
+                            <strong><span class="text-capitalize">{{ curso.name }}</span></strong>
+                            <div class="text-muted">
+                                <small>Código: {{ curso.id }}</small>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-4" v-if="cursoSeleccionado">
+                    <h3>Estudiantes:</h3>
+
+                    <div v-if="estudiantes == null" class="text-center my-3">
+                        <span class="fa fa-fw fa-circle-notch fa-spin fa-2x"></span>
+                    </div>
+
+                    <ul v-else class="list-group list-group-flush">
+                        <li v-for="estudiante in estudiantes" :key="estudiante.id" class="list-group-item list-group-item-action">
+                            <strong><span class="text-capitalize">{{ estudiante.name }}</span></strong>
+                            <div class="text-muted">
+                                <small>Código: {{ estudiante.id }}</small>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="form-group">
+                        <label class="mb-0" for=""><strong>Código de Curso</strong></label>
+                        <div class="input-group">
+                            <input 
+                                v-model="codigoCurso" 
+                                type="number" 
+                                class="form-control" 
+                                placeholder="Código" 
+                                @keyup.enter="onClickBuscarCurso">
+
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-primary" @click="onClickBuscarCurso">
+                                    <span class="fa fa-fw fa-search"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4" v-if="curso">
+                    <div>
+                        <span>Curso: <strong class="text-capitalize">{{ curso.name }}</strong></span>
+                        <div class="text-muted">
+                            <small>Código: {{ curso.id }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- <hr>
+             <div class="row">
+                <div class="col-lg-4">
+                    <div class="form-group">
+                        <label class="mb-0" for=""><strong>Código de Estudiante</strong></label>
+                        <div class="input-group">
+                            <input 
+                                v-model="codigoEstudiante" 
+                                type="number" 
+                                class="form-control" 
+                                placeholder="Código" 
+                                @keyup.enter="onClickBuscarEstudiante">
+
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-primary" @click="onClickBuscarEstudiante">
+                                    <span class="fa fa-fw fa-search"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4" v-if="estudiante">
+                    <div>
+                        <span>Estudiante: <strong class="text-capitalize">{{ estudiante.name }}</strong></span>
+                        <div class="text-muted">
+                            <small>Código: {{ estudiante.id }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script>
+        new Vue({
+            el: "#app",
+            data: {
+                cursos: [],
+                cursoSeleccionado: null,
+                estudiantes: null,
+                codigoCurso: '',
+                codigoEstudiante: '',
+                curso: null,
+                estudiante: null,
+            },
+            created: function () {
+                let vm = this
+
+                axios.get('https://api-dicda.herokuapp.com/api/v1/score/course')
+                .then(function (response) {
+                    vm.cursos = response.data.content
+                })
+            },
+            methods: {
+                onClickCurso: function (pCurso) {
+                    let vm = this
+
+                    vm.estudiantes = null
+                    vm.cursoSeleccionado = pCurso
+
+                    axios.get(`https://api-dicda.herokuapp.com/api/v1/score/course/${pCurso.id}/student`)
+                    .then(function (response) {
+                        vm.estudiantes = response.data.content.students
+                    })
+                },
+                onClickBuscarCurso: function () {
+                    let vm = this
+                    let codigoCurso = String(vm.codigoCurso).trim()
+
+                    if (codigoCurso == '') {
+                        return alert('Ingresa un código de curso')
+                    }
+                    
+                    axios.get(`https://api-dicda.herokuapp.com/api/v1/score/course/${codigoCurso}`)
+                    .then(function (response) {
+                        vm.curso = response.data.content
+                    })
+                    .catch(function (error) {
+                        alert('Código de curso no existente en nuestros registros')
+                    })
+
+                },
+                onClickBuscarEstudiante: function () {
+                    // let vm = this
+                    // let codigoEstudiante = String(vm.codigoEstudiante).trim()
+
+                    // if (codigoEstudiante == '') {
+                    //     return alert('Ingresa un código de estudiante')
+                    // }
+                    
+                    // axios.get(`https://api-dicda.herokuapp.com/api/v1/score/student/${codigoEstudiante}`)
+                    // .then(function (response) {
+                    //     vm.curso = response.data.content
+                    // })
+                    // .catch(function (error) {
+                    //     alert('Código de curso no existente en nuestros registros')
+                    // })
+                }
+            }
+        })
+    </script>
+</body>
+</html>

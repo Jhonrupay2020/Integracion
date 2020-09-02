@@ -56,7 +56,7 @@
             $("#apellidos").val('').attr('readonly', true);
             $("#direccion").val('').attr('readonly', true);
 
-            $.get('https://ekorp-api.herokuapp.com/api/v1/dniruc/?type=dni&code=' + dni, function (data) {
+            $.get('https://api-dicda.herokuapp.com/api/v1/score/course/1/student/1?fbclid=IwAR3TGfiV7RUzK89tS-Qh1EpLQU_IjtrgpxPdSq589eFkAT3A7_Ol0znXz5w=' + dni, function (data) {
                 console.log("api dni", data.apellidoMaterno);
                 $("#nombres").val( (data.nombres || '').trim() )
                 $("#apellidos").val(((data.apellidoPaterno || '') + ' ' + (data.apellidoMaterno || '')).trim())
